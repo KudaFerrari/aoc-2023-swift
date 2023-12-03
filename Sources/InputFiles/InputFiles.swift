@@ -2,7 +2,7 @@
 //  InputFiles.swift
 //  
 //
-//  Created by Kennedy Lajustra on 03/12/23.
+//  Created by Kennedy L on 03/12/23.
 //
 
 import Foundation
