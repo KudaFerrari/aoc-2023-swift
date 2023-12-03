@@ -3,26 +3,13 @@
 
 import PackageDescription
 
+let defaultDeps: [Target.Dependency] = [.targetItem(name: "InputFiles", condition: .none)]
+
 let package = Package(
     name: "AOC_2023",
-    products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
-        .library(
-            name: "AOC_2023",
-            targets: ["AOC_2023"]),
-    ],
-    dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-    ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
-        .target(
-            name: "AOC_2023",
-            dependencies: []),
-        .testTarget(
-            name: "AOC_2023Tests",
-            dependencies: ["AOC_2023"]),
+        .target(name: "InputFiles", resources: [.copy("Input")]),
+        .executableTarget(name: "Day1A", dependencies: defaultDeps),
+        .executableTarget(name: "Day1B", dependencies: defaultDeps),
     ]
 )
