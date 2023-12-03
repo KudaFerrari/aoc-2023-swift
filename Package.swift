@@ -15,5 +15,6 @@ let package = Package(
         .target(name: "Day2"),
         .executableTarget(name: "Day2A", dependencies: defaultDeps + [.targetItem(name: "Day2", condition: .none)]),
         .executableTarget(name: "Day2B", dependencies: defaultDeps + [.targetItem(name: "Day2", condition: .none)]),
+        .executableTarget(name: "Day3", dependencies: defaultDeps),
     ]
 )
