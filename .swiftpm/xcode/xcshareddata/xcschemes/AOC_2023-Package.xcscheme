@@ -202,6 +202,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "Day7"
+               BuildableName = "Day7"
+               BlueprintName = "Day7"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -236,9 +250,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "Day6"
-            BuildableName = "Day6"
-            BlueprintName = "Day6"
+            BlueprintIdentifier = "Day7"
+            BuildableName = "Day7"
+            BlueprintName = "Day7"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -262,9 +276,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "Day6"
-            BuildableName = "Day6"
-            BlueprintName = "Day6"
+            BlueprintIdentifier = "Day7"
+            BuildableName = "Day7"
+            BlueprintName = "Day7"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>
