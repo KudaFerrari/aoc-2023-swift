@@ -90,8 +90,6 @@ func count(start: Node, end: (Node)->Bool) -> Int {
     let chars = Array(input.instructions)
     var i = 0
     
-    var loopCount = 0
-    var last = 0
     while true {
         //    print("curr:", curr.name)
         let c = chars[i]
@@ -104,13 +102,7 @@ func count(start: Node, end: (Node)->Bool) -> Int {
         }
         count += 1
         if end(curr) {
-            
-            loopCount += 1
-            print("loop \(loopCount): \(count)  diff: \(count-last)")
-            last = count
-            if loopCount > 3 { return 0 }
-            
-//            return count
+            return count
         }
         i = (i + 1) % chars.count
     }
@@ -145,7 +137,7 @@ func solve2() {
 }
 
 //solve1()
-//solve2()
-let ends = input.map.values.filter { $0.endsWithZ }
-count(start: input.start, end: { e in ends.contains{ e === $0 } })
+solve2()
+//let ends = input.map.values.filter { $0.endsWithZ }
+//count(start: input.start, end: { e in ends.contains{ e === $0 } })
 
