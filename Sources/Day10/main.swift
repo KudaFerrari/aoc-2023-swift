@@ -7,6 +7,7 @@
 
 import Foundation
 import InputFiles
+import Common
 
 struct Input {
     enum Tile: Character, CaseIterable {
@@ -45,23 +46,6 @@ struct Input {
         }
     }
     
-    // (0,0) is at top-left
-    struct Point: Hashable, CustomStringConvertible, Comparable {
-        var c: Int
-        var r: Int
-        var description: String {
-            return "(r:\(r),\(c))"
-        }
-        static func + (lhs: Point, rhs: Point) -> Point {
-            return Point(c: lhs.c + rhs.c,
-                         r: lhs.r + rhs.r)
-        }
-        
-        static func < (lhs: Point, rhs: Point) -> Bool {
-            if lhs.r == rhs.r { return lhs.c < rhs.c }
-            return lhs.r < rhs.r
-        }
-    }
     
     
     var map: [[Tile]]
