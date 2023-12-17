@@ -11,21 +11,24 @@ import Common
 
 struct Input {
     let map: [[Character]]
+    var emptyRowSum: [Int]
+    var emptyColSum: [Int]
     
     init(string: String) {
         var expandedMap = string.split(separator: "\n").map { Array($0) }
-        var r = 0
-        while r < expandedMap.count {
+        var emptyRows = 0
+        var emptyRowSum = [Int]()
+        for r in 0 ..< expandedMap.count {
             if expandedMap[r].contains("#") {
-                r += 1
+                emptyRowSum.append(emptyRows)
                 continue
             }
-            expandedMap.insert(Array(repeating: ".", count: expandedMap[r].count),
-                               at: r)
-            r += 2
+            emptyRows += 1
+            emptyRowSum.append(emptyRows)
         }
-        var c = 0
-        while c < expandedMap[0].count {
+        var emptyCols = 0
+        var emptyColSum = [Int]()
+        for c in 0 ..< expandedMap[0].count {
             var isEmpty = true
             for r in 0 ..< expandedMap.count {
                 if expandedMap[r][c] == "#" {
@@ -35,20 +38,30 @@ struct Input {
             }
             
             if !isEmpty {
-                c += 1
+                emptyColSum.append(emptyCols)
                 continue
             }
             
-            for r in 0 ..< expandedMap.count {
-                expandedMap[r].insert(".", at: c)
-            }
-            c += 2
+            emptyCols += 1
+            emptyColSum.append(emptyCols)
         }
         
         map = expandedMap
+        self.emptyRowSum = emptyRowSum
+        self.emptyColSum = emptyColSum
     }
     
-    func shortestDistSum() -> Int {
+    func emptyColsBetween(_ i: Int, _ j: Int) -> Int {
+        if i > j { return emptyColSum[i] - emptyColSum[j] }
+        return emptyColSum[j] - emptyColSum[i]
+    }
+    
+    func emptyRowsBetween(_ i: Int, _ j: Int) -> Int {
+        if i > j { return emptyRowSum[i] - emptyRowSum[j] }
+        return emptyRowSum[j] - emptyRowSum[i]
+    }
+    
+    func shortestDistSum(emptyDistance: Int) -> Int {
         var galaxies = [Point]()
         for row in 0 ..< map.count {
             for col in 0 ..< map[row].count {
@@ -63,7 +76,12 @@ struct Input {
         while i < galaxies.count-1 {
             var j = i+1
             while j < galaxies.count {
-                sum += galaxies[i].manhattanDistance(galaxies[j])
+                let cols = emptyColsBetween(galaxies[i].c, galaxies[j].c)
+                let rows = emptyRowsBetween(galaxies[i].r, galaxies[j].r)
+                let dist = galaxies[i].manhattanDistance(galaxies[j])
+                let expandedRows = rows * emptyDistance - rows
+                let expandedCols = cols * emptyDistance - cols
+                sum += dist + expandedRows + expandedCols
                 j += 1
             }
             i += 1
@@ -72,6 +90,10 @@ struct Input {
     }
 }
 
-let input = Input(string: InputFiles.readInput("Day11") )
-print("distance sum:", input.shortestDistSum())
+//let input = Input(string: InputFiles.readInput("Day11Sample"))
+let input = Input(string: InputFiles.readInput("Day11"))
+print("distance sum 2:", input.shortestDistSum(emptyDistance: 2))
+print("distance sum 10:", input.shortestDistSum(emptyDistance: 10))
+print("distance sum 100:", input.shortestDistSum(emptyDistance: 100))
+print("distance sum 1000000:", input.shortestDistSum(emptyDistance: 1000000))
 
