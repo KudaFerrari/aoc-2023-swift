@@ -18,6 +18,12 @@ extension Array where Element == Target.Dependency {
 let package = Package(
     name: "AOC_2023",
     platforms: [.macOS(.v13)],
+    dependencies: [
+        .package(
+            url: "https://github.com/apple/swift-collections.git",
+            branch: "release/1.1" /// for `Heap` in day 17
+        )
+    ],
     targets: [
         .target(name: "Common"),
         .target(name: "InputFiles", resources: [.copy("Input")]),
@@ -39,5 +45,9 @@ let package = Package(
         .executableTarget(name: "Day14", dependencies: .defaultDeps),
         .executableTarget(name: "Day15", dependencies: .defaultDeps),
         .executableTarget(name: "Day16", dependencies: .defaultDeps),
+        .executableTarget(name: "Day17", dependencies: [
+            .input,
+            .product(name: "Collections", package: "swift-collections")
+        ]),
     ]
 )

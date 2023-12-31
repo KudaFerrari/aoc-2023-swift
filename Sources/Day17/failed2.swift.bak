@@ -1,0 +1,464 @@
+//
+//  File.swift
+//  
+//
+//  Created by Kennedy.Lajustra on 25/12/23.
+//
+
+import Foundation
+
+//let sampleInput = """
+//2413432311323
+//3215453535623
+//3255245654254
+//3446585845452
+//4546657867536
+//1438598798454
+//4457876987766
+//3637877979653
+//4654967986887
+//4564679986453
+//1224686865563
+//2546548887735
+//4322674655533
+//"""
+let sampleInput = """
+11111
+91191
+99911
+99911
+99991
+"""
+let MAX = 1_000_000_000
+
+//let sampleInput = """
+//563
+//735
+//533
+//"""
+
+
+struct MinHeap<T: Comparable> {
+    var arr = [T]()
+    
+    var count: Int {
+        return arr.count
+    }
+    
+    var isEmpty: Bool {
+        return count == 0
+    }
+    
+    mutating func insert(_ value: T) {
+        arr.append(value)
+        let last = count-1
+        upheap(last)
+    }
+    
+    mutating func pop() -> T? {
+        let last = count-1
+        swap(0, last)
+        let result = arr.popLast()
+        downheap(0)
+        return result
+    }
+    
+    private mutating func swap(_ u: Int, _ v: Int) {
+        guard u != v, 0 <= u, u < count, 0 <= v, v < count
+        else { return }
+        let temp = arr[u]
+        arr[u] = arr[v]
+        arr[v] = temp
+    }
+    
+    private mutating func upheap(_ n: Int) {
+        var curr = n
+        var next = parent(curr)
+        
+        while next != curr, arr[curr] < arr[next] {
+            swap(next,curr)
+            curr = next
+            next = parent(curr)
+        }
+    }
+    
+    private mutating func downheap(_ n: Int) {
+        guard 0 <= n, n < count else { return }
+        var minNode = n
+        let lc = left(n), rc = right(n)
+        if lc < count, arr[lc] < arr[minNode] {
+            minNode = lc
+        }
+        if rc < count, arr[rc] < arr[minNode] {
+            minNode = rc
+        }
+        
+        if minNode != n {
+            swap(n, minNode)
+            downheap(minNode)
+        }
+    }
+    
+    private func parent(_ n: Int) -> Int {
+        if n == 0 { return 0 }
+        return (n - 1) >> 1
+    }
+    
+    private func left(_ n: Int) -> Int {
+        return (n << 1) + 1
+    }
+    
+    private func right(_ n: Int) -> Int {
+        return (n << 1) + 2
+    }
+    
+    func debugPrint() {
+        print("heap:", arr)
+    }
+}
+
+struct Edge: Comparable {
+    var v: Int
+    var weight: Int
+    var isHorizontal: Bool
+    
+    static func < (lhs: Edge, rhs: Edge) -> Bool {
+        return lhs.weight <= rhs.weight
+    }
+}
+
+struct Vertex {
+    let weight: Int
+    var vEdges: [Edge]
+    var hEdges: [Edge]
+}
+
+struct Graph {
+    var vertices: [Vertex]
+    var weight: [[Int]]
+    let W: Int
+    let H: Int
+    
+    func ptov(_ r: Int,_ c: Int) -> Int {
+        return r * W + c
+    }
+    
+    func vtop(_ v: Int) -> (Int, Int) {
+        let c = v % W
+        let r = v / W
+        return (r,c)
+    }
+    
+    init(string: String) {
+        let lines = string.split(separator: "\n")
+        self.H = lines.count
+        self.W = lines[0].count
+        self.weight = Array(repeating: [MAX, MAX], count: W * H)
+        var vertices: [Vertex] = []
+        
+        var v = 0
+        for r in 0 ..< H {
+            let row = Array(lines[r])
+            for c in 0 ..< W {
+                let w = Int(String(row[c]))!
+                vertices.append(Vertex(weight: w, vEdges: [], hEdges: []))
+                v += 1
+            }
+        }
+        self.vertices = vertices
+        self.buildEdges()
+        weight[0][0] = vertices[0].weight
+        weight[0][1] = vertices[0].weight
+    }
+    
+    mutating func buildEdges() {
+        // right down left up
+        let dx = [1, 0, -1, 0]
+        let dy = [0, 1, 0, -1]
+        
+        let limit = 3
+        for i in 0 ..< H {
+            for j in 0 ..< W {
+                /// 0: Horizontal, 1: Vertical
+                var edges: [[Edge]] = [[], []]
+                for dir in 0 ..< 4 {
+                    var r = i
+                    var c = j
+                    var weight = 0
+                    for _ in 1 ... limit {
+                        r += dy[dir]
+                        c += dx[dir]
+                        let v = ptov(r, c)
+                        guard checkBounds(r, c) else { continue }
+                        weight += vertices[v].weight
+                        edges[dir % 2].append(Edge(v: v, weight: weight, isHorizontal: dir % 2 == 0))
+                    }
+                }
+                
+                let v = ptov(i, j)
+                vertices[v].hEdges = edges[0]
+                vertices[v].vEdges = edges[1]
+            }
+        }
+    }
+    
+    func checkBounds(_ r: Int, _ c: Int) -> Bool {
+        return 0 <= r && r < H && 0 <= c && c < W
+    }
+    
+    func debugPrint() {
+        var edgeCount = 0
+        for (i, v) in vertices.enumerated() {
+            print("\(i):")
+            print("weight:", v.weight)
+            print("hEdge:", v.hEdges)
+            print("vEdge:", v.vEdges)
+            print("")
+            edgeCount += v.hEdges.count + v.vEdges.count
+        }
+        print("edge count:", edgeCount)
+    }
+    
+    func debugPrintWeights() {
+        for parity in 0 ..< 2 {
+            print(parity == 0 ? "Horizontal weights:" : "Vertical weights:")
+            for (i, _) in vertices.enumerated() {
+                if i % W == 0, i > 0 { print("") }
+                print(String(weight[i][parity]).padding(toLength: 3, withPad: " ", startingAt: 0), terminator: " ")
+            }
+            print("")
+        }
+    }
+}
+
+import InputFiles
+
+
+
+func solve1(){
+    var g = Graph(string: sampleInput)
+    //g.debugPrint()
+    // vertex, isHorizontal
+    var q = MinHeap<Edge>()
+    let startingPoints: [Edge] = [Edge(v: 0, weight: g.weight[0][0], isHorizontal: true), Edge(v: 0, weight: g.weight[0][0], isHorizontal: false)]
+    for p in startingPoints {
+        q.insert(p)
+    }
+    while let edge = q.pop() {
+        let (r, c) = g.vtop(edge.v)
+        
+        let v = g.vertices[edge.v]
+        let isHorizontal = edge.isHorizontal
+        let hptr = isHorizontal ? 0 : 1
+        let nhptr = isHorizontal ? 1 : 0
+        print("curr: \(r),\(c)", isHorizontal ? "H" : "V")
+        
+        for neighbor in isHorizontal ? v.vEdges : v.hEdges {
+            print("enqueue \(g.vtop(neighbor.v)), ", !isHorizontal ? "H" : "V")
+            let neighborWeight = g.weight[edge.v][hptr] + neighbor.weight
+            if neighborWeight < g.weight[neighbor.v][nhptr] {
+                g.weight[neighbor.v][nhptr] = neighborWeight
+                q.insert(Edge(v: neighbor.v, weight: neighborWeight, isHorizontal: !isHorizontal))
+            }
+        }
+        
+        g.debugPrintWeights()
+        readLine()
+    }
+    
+    print("part1:", g.weight.last)
+}
+//solve1()
+
+
+func testHeap() {
+    var heap = MinHeap<Edge>()
+    let numbers = [4,5,2,3,1]
+    for (i, w) in numbers.enumerated() {
+        let e = Edge(v: i, weight: w, isHorizontal: true)
+        print("insert", e)
+        heap.insert(e)
+        heap.debugPrint()
+    }
+    
+    while true {
+        let result = heap.pop()
+        print("pop = ", result)
+        heap.debugPrint()
+        if result == nil { break }
+    }
+}
+//testHeap()
+import Collections
+
+func solve1New() {
+    // adjList[u][horizontal = 0|vertical = 1] -> [(weight, v)]
+    let INF = 1_000_000_000
+    struct Neighbor: Comparable, CustomStringConvertible {
+        // vertex number
+        let v: Int
+        let weight: Int
+        
+        static func < (lhs: Neighbor, rhs: Neighbor) -> Bool {
+            return lhs.weight <= rhs.weight
+        }
+        
+        var description: String {
+            return "\(v) weight \(weight)"
+        }
+    }
+    
+    // MARK: build list
+    let limit = 3
+    // [v] -> [Edge]
+    // vertical neighbors
+    var adjList = [Int: [Neighbor]]()
+    // horizontal neighbors
+    let weight = sampleInput
+        .split(separator: "\n")
+        .map { $0.compactMap { Int(String($0)) } }
+    let H = weight.count, W = weight[0].count
+    let DX = [1, 0, -1, 0]
+    let DY = [0, 1, 0, -1]
+    for r in 0 ..< H {
+        for c in 0 ..< W {
+            let v = r * W + c
+            var isHorizontal = true
+            for (dx, dy) in zip(DX,DY) {
+                var i = r
+                var j = c
+                var w = 0
+                for _ in 1 ... limit {
+                    i += dy
+                    j += dx
+                    guard inBounds(i, j) else { continue }
+                    w += weight[i][j]
+                    if adjList[ptov(r, c, isHorizontal: isHorizontal)] == nil {
+                        adjList[ptov(r, c, isHorizontal: isHorizontal)] = []
+                    }
+                    adjList[ptov(r, c, isHorizontal: isHorizontal)]?
+                        .append(Neighbor(v: ptov(i, j, isHorizontal: !isHorizontal), weight: w))
+                }
+                isHorizontal.toggle()
+            }
+        }
+    }
+    
+    // MARK: direction map
+    var drawMap = Array(repeating: Array(repeating: ".", count: W), count: H)
+    
+    struct Node: Hashable, Comparable {
+        let v: Int
+        let dist: Int
+        
+        static func < (lhs: Node, rhs: Node) -> Bool {
+            return lhs.dist <= rhs.dist
+        }
+    }
+    
+    // MARK: Dijkstra
+    // min dist if move horizontal from v
+    var dist: [Int] = Array(repeating: INF, count: W*H*2)
+    var pq = MinHeap<Node>()
+    pq.insert(Node(v: ptov(0, 0, isHorizontal: false), dist: weight[0][0]))
+    dist[ptov(0, 0, isHorizontal: false)] = weight[0][0]
+    pq.insert(Node(v: ptov(0, 0, isHorizontal: true), dist: weight[0][0]))
+    dist[ptov(0, 0, isHorizontal: true)] = weight[0][0]
+    let a = ptov(0, 0, isHorizontal: false), b = ptov(0, 0, isHorizontal: true)
+    print("a:", adjList[a])
+    print("b:", adjList[b])
+    
+    while let curr = pq.pop() {
+        print("pop", curr.dist)
+        let u = curr.v
+        if curr.dist > dist[curr.v] { continue }
+        for v in adjList[u] ?? [] {
+            if dist[u] + v.weight < dist[v.v] {
+//                print("dist u \(dist[u]) + \(v.weight) < dist v \(dist[v.v])")
+                dist[v.v] = dist[u] + v.weight
+                drawLine(vtop(u), vtop(v.v))
+                pq.insert(Node(v: v.v, dist: dist[v.v]))
+            }
+        }
+        debugPrintDist()
+        draw()
+        readLine()
+    }
+    
+    
+    func draw() {
+        print(drawMap.map { $0.joined() }.joined(separator: "\n"))
+    }
+    
+    func debugPrintDist() {
+        for r in 0 ..< H {
+            var vstr = ""
+            var hstr = ""
+            for c in 0 ..< W {
+                // vertical
+                let vi = ptov(r, c, isHorizontal: false)
+                let hi = ptov(r, c, isHorizontal: true)
+                if dist[vi] == INF {
+                    vstr += ".   "
+                } else {
+                    vstr += String(dist[vi]).padding(toLength: 4, withPad: " ", startingAt: 0)
+                }
+                if dist[hi] == INF {
+                    hstr += ".   "
+                } else {
+                    hstr += String(dist[hi]).padding(toLength: 4, withPad: " ", startingAt: 0)
+                }
+            }
+            print("\(vstr) | \(hstr)")
+        }
+    }
+    
+    func inBounds(_ r: Int, _ c: Int) -> Bool {
+        return 0 <= r && r < H && 0 <= c && c < W
+    }
+    
+    func vtop(_ v: Int) -> (Int, Int) {
+        if v >= W*H {
+            return vtop(v % (W*H))
+        } else {
+            return (v/W, v%W)
+        }
+    }
+    
+    func ptov(_ r: Int, _ c: Int, isHorizontal: Bool) -> Int {
+        return isHorizontal ? r * W + c : (W * H) + (r * W) + c
+    }
+    
+    func drawLine(_ rc: (Int, Int), _ ij: (Int, Int)) {
+        let (r, c) = rc, (i, j) = ij
+        guard r == i || c == j else { fatalError("doesn't support diagonal") }
+        let ch = [">", "v", "<", "^"]
+        let dx = [1, 0, -1, 0]
+        let dy = [0, 1, 0, -1]
+        let dir: Int
+        if r == i { // horizontal
+            if c < j { // ltr
+                dir = 0
+            } else { // rtl
+                dir = 2
+            }
+        } else { // vertical
+            if r < i { // ttb
+                dir = 1
+            } else { // btt
+                dir = 3
+            }
+        }
+        var y = r, x = c
+        print("draw from", y, x, "to", i, j, "dir", dir)
+        while y != i || x != j {
+            print("draw char", ch[dir])
+            x += dx[dir]
+            y += dy[dir]
+            drawMap[y][x] = ch[dir]
+        }
+    }
+}
+
+solve1New()
+
